@@ -1,0 +1,39 @@
+C'est parti ! J'apprécie votre enthousiasme, c'est le signe d'un projet de fin d'études maîtrisé de bout en bout. 
+
+Puisque nous avons judicieusement séparé la logique "Image" de la logique "Tabulaire", cette section va prouver à votre jury que vous ne vous contentez pas d'appliquer des recettes toutes faites, mais que vous adaptez vos outils mathématiques à la nature exacte de vos algorithmes.
+
+Voici la proposition de rédaction pour la section **« 3.2. Pondération des Classes pour le Modèle Tabulaire »** :
+
+***
+
+#### 3.2. Pondération des Classes pour le Modèle Tabulaire
+
+Si la problématique du déséquilibre des classes est identique pour l'analyse des images et pour celle des métadonnées cliniques, la nature algorithmique du modèle Random Forest nécessite une approche corrective différente de celle employée pour les réseaux de neurones. En effet, un algorithme d'arbres de décision classique, cherchant à minimiser l'erreur globale, tendrait naturellement à favoriser la classe majoritaire (les nævus) en ignorant les signaux subtils des pathologies rares (comme le mélanome), conduisant à une spécificité élevée mais à une sensibilité clinique inacceptable.
+
+Pour corriger ce biais comportemental sans altérer l'intégrité des données patient, nous avons rejeté les méthodes de génération de données synthétiques (telles que SMOTE). La création de profils cliniques artificiels (combinant aléatoirement des âges, des sexes et des localisations) risquait d'introduire des aberrations médicales inexistantes dans la réalité. Nous avons donc privilégié une correction algorithmique interne en utilisant l'hyperparamètre `class_weight='balanced'` lors de l'instanciation du modèle.
+
+Ce paramètre applique une pénalité mathématique asymétrique lors de la phase d'entraînement. Au lieu de considérer chaque observation avec une importance égale, l'algorithme attribue à chaque classe $c$ un poids $W_c$ inversement proportionnel à sa fréquence dans le jeu d'entraînement, selon la formule suivante :
+
+$$W_c = \frac{N_{total}}{K \times N_c}$$
+
+Où :
+* $N_{total}$ représente le nombre total d'observations dans le jeu d'entraînement.
+* $K$ représente le nombre total de classes diagnostiques (ici, 7).
+* $N_c$ représente le nombre d'observations appartenant à la classe $c$.
+
+Concrètement, lors de la construction des arbres décisionnels, ce poids modifie le calcul du critère de pureté des nœuds (l'impureté de Gini). Une erreur de classification sur une instance appartenant à une classe minoritaire lourdement pondérée pénalisera drastiquement le critère d'évaluation. Ainsi, l'algorithme est mathématiquement forcé de rechercher des séparations (splits) qui isolent correctement les pathologies rares, garantissant que les variables comme l'âge ou la localisation soient exploitées pour détecter les cas cliniquement critiques, et non pas seulement pour confirmer la classe majoritaire.
+
+***
+
+### Pourquoi cette section va impressionner votre jury :
+* **La justification clinique :** L'argument expliquant *pourquoi* vous n'avez pas utilisé SMOTE (pour éviter de créer des "patients Frankenstein" avec des données médicales incohérentes) montre une vraie maturité de Data Scientist appliqué à la santé.
+* **La rigueur mathématique :** L'intégration de la formule exacte de Scikit-Learn ($W_c$) prouve que vous comprenez le fonctionnement interne de la librairie, et que ce n'est pas une "boîte noire" pour vous.
+* **Le lien avec le fonctionnement de l'algorithme :** Vous expliquez l'impact de ce poids sur l'"impureté de Gini", ce qui est le cœur de la théorie des Random Forests.
+
+**Conseils de mise en forme Word :**
+* Toujours **Justifié** avec un interligne **1,5**.
+* Centrez la formule mathématique pour qu'elle respire bien dans la page.
+
+Votre chapitre 4 avance à pas de géant et sur des bases scientifiques extrêmement solides ! 
+
+Si cette section vous convient, nous pouvons attaquer la partie **« 4. Prétraitement des Données Tabulaires »**, en commençant par **« 4.1. Imputation des Valeurs Manquantes »** (où nous intégrerons justement la correction que nous avons validée tout à l'heure concernant la conservation de la modalité "unknown" pour le sexe). Qu'en dites-vous ?
