@@ -1,130 +1,302 @@
-import React from 'react';
-import { Activity, Shield, Eye, FileText, History, ArrowRight, BrainCircuit } from 'lucide-react';
 
-export default function Home({ onNavigate }) {
+import { useState, useEffect } from "react";
+import {
+  Activity,
+  ArrowRight,
+  Brain,
+  FileText,
+  History,
+  Flame,
+  ScanLine,
+  ShieldCheck,
+  ChevronRight,
+} from "lucide-react";
+
+// ── Données statiques ──────────────────────────────────────────────────────────
+const FEATURES = [
+  {
+    icon: Brain,
+    color: "bg-teal-50 text-teal-700",
+    title: "IA Multimodale",
+    desc: "Fusion image + âge, sexe et localisation anatomique pour une précision maximale.",
+  },
+  {
+    icon: Flame,
+    color: "bg-rose-50 text-rose-700",
+    title: "Grad-CAM",
+    desc: "Cartographie thermique de la zone décisive. Le modèle n'est plus une boîte noire.",
+  },
+  {
+    icon: History,
+    color: "bg-blue-50 text-blue-700",
+    title: "Suivi dans le temps",
+    desc: "Historique par lésion. Comparez l'évolution d'un grain de beauté entre analyses.",
+  },
+  {
+    icon: FileText,
+    color: "bg-violet-50 text-violet-700",
+    title: "Rapport PDF",
+    desc: "Compte-rendu exportable avec image, heatmap, scores et données cliniques saisies.",
+  },
+];
+
+const STEPS = [
+  { num: "01", title: "Upload de l'image", desc: "Photo dermatoscopique de la lésion cutanée." },
+  { num: "02", title: "Données cliniques", desc: "Âge, sexe, localisation anatomique du patient." },
+  { num: "03", title: "Analyse ConvNeXt", desc: "Inférence multimodale + génération Grad-CAM." },
+  { num: "04", title: "Rapport & suivi", desc: "PDF exportable et historique consultable." },
+];
+
+const PROBS = [
+  { label: "Mélanome", pct: 91, color: "bg-rose-600" },
+  { label: "Nævus bénin", pct: 6, color: "bg-slate-400" },
+  { label: "Kératose", pct: 3, color: "bg-slate-300" },
+];
+
+// ── Composant carte de scan démo ───────────────────────────────────────────────
+function ScanDemo() {
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      
-      {/* Navbar Minimaliste */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-2">
-              <Activity className="text-teal-600" size={28} />
-              <span className="text-xl font-bold text-slate-800">MelanoScan</span>
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-xs font-medium text-slate-600">Analyse #0042 · Patient M., 54 ans</span>
+        <span className="text-xs bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full font-medium">
+          Complété
+        </span>
+      </div>
+
+      {/* Image + heatmap simulée */}
+      <div className="relative bg-slate-100 rounded-xl h-36 flex items-center justify-center mb-4 overflow-hidden">
+        {/* Heatmap radial */}
+        <div
+          className="absolute inset-0 rounded-xl"
+          style={{
+            background:
+              "radial-gradient(ellipse at 55% 45%, rgba(220,38,38,0.45) 0%, rgba(234,179,8,0.3) 35%, transparent 65%)",
+          }}
+        />
+        {/* Lésion simulée */}
+        <div
+          className="relative z-10 bg-slate-500 opacity-75"
+          style={{
+            width: 52,
+            height: 44,
+            borderRadius: "50% 45% 55% 40%",
+          }}
+        />
+        {/* Label heatmap */}
+        <span className="absolute bottom-2 right-3 text-[10px] text-white/80 font-medium tracking-wide">
+          Grad-CAM
+        </span>
+      </div>
+
+      {/* Métriques */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="bg-slate-50 border border-slate-100 rounded-lg p-3">
+          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Diagnostic IA</p>
+          <p className="text-base font-semibold text-rose-700">Mélanome</p>
+        </div>
+        <div className="bg-slate-50 border border-slate-100 rounded-lg p-3">
+          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Confiance</p>
+          <p className="text-base font-semibold text-slate-800">91.4 %</p>
+        </div>
+      </div>
+
+      {/* Barres de probabilité */}
+      <div className="space-y-2">
+        {PROBS.map(({ label, pct, color }) => (
+          <div key={label} className="flex items-center gap-2 text-xs">
+            <span className="w-20 text-right text-slate-500 shrink-0">{label}</span>
+            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-1.5 rounded-full ${color}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="w-7 text-slate-400">{pct}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Page principale ────────────────────────────────────────────────────────────
+export default function Home({ onNavigate }) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans antialiased">
+
+      {/* ── Navbar ─────────────────────────────────────────────────────────── */}
+      <nav
+        className={`sticky top-0 z-50 transition-all duration-200 ${
+          scrolled ? "bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm" : "bg-white border-b border-slate-200"
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-teal-700 rounded-lg flex items-center justify-center">
+              <Activity size={16} className="text-teal-100" />
             </div>
             <div>
-              <button className="text-slate-600 font-medium hover:text-teal-600 transition px-4 py-2">
-                Se connecter
-              </button>
-              <button className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg font-medium transition ml-2">
-                Créer un compte
-              </button>
+              <p className="text-sm font-semibold text-slate-800 leading-none">MelanoScan</p>
+              <p className="text-[10px] text-slate-400 tracking-wide uppercase leading-none mt-0.5">
+                Dermatology AI
+              </p>
             </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onNavigate?.("login")}
+              className="text-sm text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-100 transition"
+            >
+              Se connecter
+            </button>
+            <button
+              onClick={() => onNavigate?.("register")}
+              className="text-sm bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-lg font-medium transition"
+            >
+              Créer un compte
+            </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main>
-        <div className="relative bg-white overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-50 text-teal-700 font-medium text-sm mb-8 border border-teal-100">
-              <Shield size={16} />
-              Plateforme certifiée Projet de Fin d'Études (PFE)
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+          {/* Texte */}
+          <div>
+            <div className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-500 text-xs px-3 py-1.5 rounded-full mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+              Projet de Fin d'Études · PFE 2026
             </div>
-            
-            <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
-              L'Intelligence Artificielle au service du <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-600">
-                diagnostic dermatologique
-              </span>
+
+            <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-5">
+              Détection précoce du{" "}
+              <span className="text-teal-700 italic font-serif">mélanome</span>
+              {" "}par intelligence artificielle
             </h1>
-            
-            <p className="mt-4 text-xl text-slate-500 max-w-3xl mx-auto mb-10">
-              MelanoScan combine la vision par ordinateur (ConvNeXt) et les métadonnées cliniques du patient pour offrir une analyse multimodale des lésions cutanées. Un outil d'aide à la décision conçu pour la précision et la transparence.
+
+            <p className="text-base text-slate-500 leading-relaxed mb-8 max-w-lg">
+              MelanoScan analyse les lésions cutanées par vision par ordinateur (ConvNeXt) 
+              combinée aux métadonnées cliniques. Chaque analyse génère une carte thermique 
+              Grad-CAM et un rapport PDF exportable.
             </p>
-            
-            <button 
-              onClick={() => onNavigate('analysis')}
-              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg shadow-teal-200 transition transform hover:-translate-y-1"
-            >
-              Démarrer une analyse
-              <ArrowRight size={20} />
-            </button>
-          </div>
-        </div>
 
-        {/* Section Fonctionnalités (Les Valeurs Ajoutées) */}
-        <div className="bg-slate-50 py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-slate-900">Une architecture pensée pour le milieu clinique</h2>
-              <p className="mt-4 text-lg text-slate-600">Au-delà de la simple prédiction, une suite d'outils explicables et traçables.</p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => onNavigate?.("analysis")}
+                className="inline-flex items-center gap-2 bg-teal-700 hover:bg-teal-800 text-white px-6 py-3 rounded-xl font-medium text-sm shadow-lg shadow-teal-100 transition hover:-translate-y-0.5"
+              >
+                <ScanLine size={16} />
+                Démarrer une analyse
+                <ArrowRight size={14} />
+              </button>
+              <button className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 px-5 py-3 border border-slate-200 bg-white rounded-xl transition hover:border-slate-300">
+                En savoir plus
+                <ChevronRight size={14} />
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              
-              {/* Feature 1 */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-lg flex items-center justify-center mb-4">
-                  <BrainCircuit size={24} />
+            {/* Stats rapides */}
+            <div className="mt-10 flex gap-8 border-t border-slate-100 pt-6">
+              {[
+                { val: "73.6%", label: "B-Accuracy" },
+                { val: "9", label: "Classes de lésions" },
+                { val: "Grad-CAM", label: "Explicabilité" },
+              ].map(({ val, label }) => (
+                <div key={label}>
+                  <p className="text-lg font-semibold text-slate-800">{val}</p>
+                  <p className="text-xs text-slate-400">{label}</p>
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2">IA Multimodale</h3>
-                <p className="text-slate-600 text-sm">
-                  Fusion intermédiaire (Feature Fusion) des pixels de l'image avec l'âge, le sexe et la localisation pour une précision maximale (73.6% B-Acc).
-                </p>
-              </div>
-
-              {/* Feature 2 */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-4">
-                  <Eye size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2">Explicabilité Grad-CAM</h3>
-                <p className="text-slate-600 text-sm">
-                  Le modèle n'est plus une "boîte noire". Une cartographie thermique indique visuellement la zone exacte ayant motivé le diagnostic de l'IA.
-                </p>
-              </div>
-
-              {/* Feature 3 */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center mb-4">
-                  <History size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2">Suivi & Comparaison</h3>
-                <p className="text-slate-600 text-sm">
-                  Historisation des patients et interface de comparaison côte-à-côte pour surveiller l'évolution d'un grain de beauté dans le temps.
-                </p>
-              </div>
-
-              {/* Feature 4 */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mb-4">
-                  <FileText size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-2">Rapports PDF</h3>
-                <p className="text-slate-600 text-sm">
-                  Génération instantanée d'un compte-rendu médical exportable contenant les scores Softmax, les images et les données saisies.
-                </p>
-              </div>
-
+              ))}
             </div>
           </div>
-        </div>
-      </main>
 
-      {/* Footer Médical */}
-      <footer className="bg-slate-900 py-8 text-center">
-        <div className="max-w-7xl mx-auto px-4">
-          <p className="text-slate-400 text-sm">
-            © 2026 MelanoScan - Projet de Fin d'Études.
+          {/* Carte démo */}
+          <div className="lg:pl-4">
+            <ScanDemo />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Fonctionnalités ────────────────────────────────────────────────── */}
+      <section className="bg-white border-t border-b border-slate-200 py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Fonctionnalités</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-10">Une suite clinique complète</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {FEATURES.map(({ icon: Icon, color, title, desc }) => (
+              <div
+                key={title}
+                className="bg-slate-50 border border-slate-100 rounded-2xl p-5 hover:border-slate-200 hover:shadow-sm transition"
+              >
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-4 ${color}`}>
+                  <Icon size={18} />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-800 mb-1.5">{title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Étapes ─────────────────────────────────────────────────────────── */}
+      <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6">
+        <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Workflow</p>
+        <h2 className="text-2xl font-bold text-slate-900 mb-10">Comment ça fonctionne</h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200 rounded-2xl overflow-hidden">
+          {STEPS.map(({ num, title, desc }) => (
+            <div key={num} className="bg-white p-6">
+              <p className="text-xs text-slate-300 font-mono mb-3">{num}</p>
+              <p className="text-sm font-semibold text-slate-800 mb-1.5">{title}</p>
+              <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Avertissement médical ──────────────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
+        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex gap-4 items-start">
+          <ShieldCheck size={18} className="text-amber-600 mt-0.5 shrink-0" />
+          <p className="text-xs text-amber-700 leading-relaxed">
+            <span className="font-semibold">Avertissement médical :</span> MelanoScan est un outil 
+            académique de démonstration technologique. Les résultats fournis par l'intelligence 
+            artificielle ne constituent en aucun cas un diagnostic médical définitif et ne 
+            remplacent pas une biopsie ou l'avis d'un dermatologue qualifié.
           </p>
-          <p className="text-slate-500 text-xs mt-2 max-w-2xl mx-auto">
-            Avertissement : MelanoScan est un outil académique de démonstration technologique. Les résultats fournis par l'Intelligence Artificielle ne constituent en aucun cas un diagnostic médical définitif et ne remplacent pas une biopsie ou l'avis d'un dermatologue qualifié.
-          </p>
+        </div>
+      </section>
+
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      <footer className="border-t border-slate-200 bg-white py-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-teal-700 rounded flex items-center justify-center">
+              <Activity size={12} className="text-teal-100" />
+            </div>
+            <span className="text-xs font-medium text-slate-600">MelanoScan</span>
+          </div>
+          <p className="text-xs text-slate-400">© 2026 MelanoScan · Projet de Fin d'Études</p>
         </div>
       </footer>
+
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import uvicorn
 from app import create_app
 from app.database import Base, engine
-from app.models import User, Diagnostic  # noqa — nécessaire pour create_all
+from app.models import User, Analysis  # noqa — nécessaire pour create_all
 
 Base.metadata.create_all(bind=engine)
 app = create_app()
