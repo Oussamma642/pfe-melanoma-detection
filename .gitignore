@@ -69,3 +69,6 @@ yarn-error.log*
 .vscode/
 .idea/
 *.swp
+
+# Bakcend
+backend\uploads
