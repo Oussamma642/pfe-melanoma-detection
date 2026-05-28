@@ -4,7 +4,7 @@ import NotFound from "./views/NotFound";
 import DefaultLayout from "./components/DefaultLayout";
 import GuestLayout from "./components/GuestLayout";
 import Home from "./components/Home";
-import Dashbord from "./views/dashbord/dashbord";
+import Dashbord from "./views/dashbord/Dashbord";
 
 // const {user}=  useStateContext();
 
