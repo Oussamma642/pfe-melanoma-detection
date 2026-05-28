@@ -41,8 +41,7 @@ const router = createBrowserRouter([
             element: <Dashbord />,
             children: [
             ],
-          },
-         
+          }          
         ],
       },
 

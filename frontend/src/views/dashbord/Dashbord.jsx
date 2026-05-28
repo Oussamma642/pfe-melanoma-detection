@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from "react";
 import {
   Upload,
@@ -14,7 +15,7 @@ import {
   XCircle
 } from "lucide-react";
 
-export default function Dashbord() {
+export default function GeminiDash() {
   // États de simulation : 'idle' | 'analyzing' | 'results' | 'invalid'
   const [status, setStatus] = useState("idle");
 
@@ -302,12 +303,3 @@ export default function Dashbord() {
   );
 }
 
-// import React from 'react'
-
-// function Dashbord() {
-//   return (
-//     <div>dashbord</div>
-//   )
-// }
-
-// export default Dashbord
